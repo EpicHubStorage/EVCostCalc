@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EV Charging vs. Gasoline Cost Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Light gray background */
+        }
+        .calculator-card {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+        }
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+        .input-group label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: #374151; /* Gray-700 */
+        }
+        .input-group input[type="number"] {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db; /* Gray-300 */
+            border-radius: 8px;
+            box-sizing: border-box;
+            transition: border-color 0.3s;
+        }
+        .input-group input[type="number"]:focus {
+            border-color: #2563eb; /* Blue-600 */
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+        }
+        .input-tip {
+            font-size: 0.875rem;
+            color: #6b7280; /* Gray-500 */
+            margin-top: 0.25rem;
+        }
+        .calculate-button {
+            background-color: #2563eb; /* Blue-600 */
+            color: white;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            width: 100%;
+        }
+        .calculate-button:hover {
+            background-color: #1d4ed8; /* Blue-700 */
+        }
+        .results-card {
+            background-color: #e0f2fe; /* Light Blue-100 for results */
+            border: 1px solid #7dd3fc; /* Light Blue-300 border */
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-top: 2rem;
+        }
+        .results-card h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #0c4a6e; /* Dark Blue-800 */
+            margin-bottom: 1rem;
+        }
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #bae6fd; /* Light Blue-200 */
+        }
+        .result-item:last-child {
+            border-bottom: none;
+        }
+        .result-item span:first-child {
+            color: #075985; /* Blue-700 */
+            font-weight: 500;
+        }
+        .result-item span:last-child {
+            color: #0369a1; /* Blue-600 */
+            font-weight: 600;
+        }
+        .savings {
+            color: #059669 !important; /* Green-600 for savings */
+            font-weight: 700 !important;
+        }
+        .cost {
+            color: #dc2626 !important; /* Red-600 for costs */
+        }
+        .info-banner {
+            background-color: #fffbeb; /* Yellow-50 */
+            color: #b45309; /* Yellow-700 */
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            border: 1px solid #fef3c7; /* Yellow-200 */
+        }
+        .error-message {
+            background-color: #fee2e2; /* Red-100 */
+            color: #b91c1c; /* Red-700 */
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            text-align: center;
+            display: none; /* Hidden by default */
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-2xl mx-auto">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-800">EV Savings Calculator</h1>
+            <p class="text-gray-600 mt-2">Compare home EV charging costs to gasoline and public EV charging.</p>
+        </header>
+
+        <div class="info-banner">
+            <p>Default cost values are based on US national averages (May 2025). Please update them with your local rates for accurate results. You can usually find your electricity rate on your utility bill.</p>
+        </div>
+
+        <div class="calculator-card">
+            <h2 class="text-xl font-semibold text-gray-700 mb-6">Enter Your Details:</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="input-group">
+                    <label for="milesDriven">Average Miles Driven per Month:</label>
+                    <input type="number" id="milesDriven" value="1000" step="50" min="0">
+                </div>
+
+                <div class="input-group">
+                    <label for="evEfficiency">EV Efficiency (miles per kWh):</label>
+                    <input type="number" id="evEfficiency" value="3.5" step="0.1" min="0.1">
+                    <p class="input-tip">Typical range: 2.5 - 4.5 mi/kWh</p>
+                </div>
+
+                <div class="input-group">
+                    <label for="gasMpg">Gasoline Car MPG (Comparable):</label>
+                    <input type="number" id="gasMpg" value="26" step="1" min="1">
+                    <p class="input-tip">Avg. new car: ~26 MPG</p>
+                </div>
+                
+                <div class="input-group">
+                    <label for="homeElectricityCost">Home Electricity Cost ($ per kWh):</label>
+                    <input type="number" id="homeElectricityCost" value="0.164" step="0.001" min="0">
+                    <p class="input-tip">US Avg: ~$0.164/kWh. Check your utility bill.</p>
+                </div>
+
+                <div class="input-group">
+                    <label for="gasPrice">Gasoline Price ($ per gallon):</label>
+                    <input type="number" id="gasPrice" value="3.20" step="0.01" min="0">
+                     <p class="input-tip">US Avg: ~$3.20/gallon (Regular)</p>
+                </div>
+
+                <div class="input-group">
+                    <label for="publicChargingCost">Public EV Charging Cost ($ per kWh):</label>
+                    <input type="number" id="publicChargingCost" value="0.40" step="0.01" min="0">
+                    <p class="input-tip">Can vary widely (L2: $0.20-$0.50, DCFC: $0.30-$0.70+)</p>
+                </div>
+            </div>
+
+            <button id="calculateButton" class="calculate-button mt-4">Calculate Savings</button>
+            <div id="errorMessage" class="error-message"></div>
+        </div>
+
+        <div id="resultsSection" class="results-card" style="display: none;">
+            <h3>Calculation Results:</h3>
+            <div id="monthlyCosts">
+                </div>
+            <div id="annualCosts" class="mt-6">
+                </div>
+            <div id="monthlySavings" class="mt-6">
+                </div>
+             <div id="annualSavings" class="mt-6">
+                </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const milesDrivenEl = document.getElementById('milesDriven');
+        const evEfficiencyEl = document.getElementById('evEfficiency');
+        const gasMpgEl = document.getElementById('gasMpg');
+        const homeElectricityCostEl = document.getElementById('homeElectricityCost');
+        const gasPriceEl = document.getElementById('gasPrice');
+        const publicChargingCostEl = document.getElementById('publicChargingCost');
+        const calculateButton = document.getElementById('calculateButton');
+        const resultsSection = document.getElementById('resultsSection');
+        const monthlyCostsDiv = document.getElementById('monthlyCosts');
+        const annualCostsDiv = document.getElementById('annualCosts');
+        const monthlySavingsDiv = document.getElementById('monthlySavings');
+        const annualSavingsDiv = document.getElementById('annualSavings');
+        const errorMessageDiv = document.getElementById('errorMessage');
+
+        // Event Listener for Calculate Button
+        calculateButton.addEventListener('click', () => {
+            // Clear previous error messages
+            errorMessageDiv.style.display = 'none';
+            errorMessageDiv.textContent = '';
+
+            // Get input values and convert to numbers
+            const milesDriven = parseFloat(milesDrivenEl.value);
+            const evEfficiency = parseFloat(evEfficiencyEl.value);
+            const gasMpg = parseFloat(gasMpgEl.value);
+            const homeElectricityCost = parseFloat(homeElectricityCostEl.value);
+            const gasPrice = parseFloat(gasPriceEl.value);
+            const publicChargingCost = parseFloat(publicChargingCostEl.value);
+
+            // --- Input Validation ---
+            let errors = [];
+            if (isNaN(milesDriven) || milesDriven <= 0) errors.push("Miles driven must be a positive number.");
+            if (isNaN(evEfficiency) || evEfficiency <= 0) errors.push("EV efficiency must be a positive number.");
+            if (isNaN(gasMpg) || gasMpg <= 0) errors.push("Gasoline MPG must be a positive number.");
+            if (isNaN(homeElectricityCost) || homeElectricityCost < 0) errors.push("Home electricity cost cannot be negative.");
+            if (isNaN(gasPrice) || gasPrice < 0) errors.push("Gasoline price cannot be negative.");
+            if (isNaN(publicChargingCost) || publicChargingCost < 0) errors.push("Public charging cost cannot be negative.");
+            
+            if (errors.length > 0) {
+                errorMessageDiv.innerHTML = errors.join('<br>');
+                errorMessageDiv.style.display = 'block';
+                resultsSection.style.display = 'none'; // Hide results if errors
+                return; // Stop calculation
+            }
+
+            // --- Calculations ---
+
+            // 1. Energy/Fuel Consumed Monthly
+            const kwhConsumedMonthly = milesDriven / evEfficiency;
+            const gallonsConsumedMonthly = milesDriven / gasMpg;
+
+            // 2. Monthly Costs
+            const homeChargingMonthlyCost = kwhConsumedMonthly * homeElectricityCost;
+            const gasMonthlyCost = gallonsConsumedMonthly * gasPrice;
+            const publicChargingMonthlyCost = kwhConsumedMonthly * publicChargingCost;
+
+            // 3. Annual Costs
+            const homeChargingAnnualCost = homeChargingMonthlyCost * 12;
+            const gasAnnualCost = gasMonthlyCost * 12;
+            const publicChargingAnnualCost = publicChargingMonthlyCost * 12;
+
+            // 4. Monthly Savings (Home Charging vs. Others)
+            const savingsVsGasMonthly = gasMonthlyCost - homeChargingMonthlyCost;
+            const savingsVsPublicMonthly = publicChargingMonthlyCost - homeChargingMonthlyCost;
+            
+            // 5. Annual Savings (Home Charging vs. Others)
+            const savingsVsGasAnnual = gasAnnualCost - homeChargingAnnualCost;
+            const savingsVsPublicAnnual = publicChargingAnnualCost - homeChargingAnnualCost;
+
+
+            // --- Display Results ---
+            resultsSection.style.display = 'block'; // Show results section
+
+            // Helper function to format currency
+            const formatCurrency = (amount) => {
+                return amount.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+            };
+            
+            // Populate Monthly Costs
+            monthlyCostsDiv.innerHTML = `
+                <h4 class="text-lg font-semibold text-gray-700 mb-2">Monthly Costs:</h4>
+                <div class="result-item">
+                    <span>Home EV Charging:</span>
+                    <span class="${homeChargingMonthlyCost < gasMonthlyCost && homeChargingMonthlyCost < publicChargingMonthlyCost ? 'text-green-600' : 'cost'}">${formatCurrency(homeChargingMonthlyCost)}</span>
+                </div>
+                <div class="result-item">
+                    <span>Gasoline Car:</span>
+                    <span class="cost">${formatCurrency(gasMonthlyCost)}</span>
+                </div>
+                <div class="result-item">
+                    <span>Public EV Charging:</span>
+                    <span class="cost">${formatCurrency(publicChargingMonthlyCost)}</span>
+                </div>
+            `;
+
+            // Populate Annual Costs
+            annualCostsDiv.innerHTML = `
+                <h4 class="text-lg font-semibold text-gray-700 mb-2 mt-4">Annual Costs:</h4>
+                <div class="result-item">
+                    <span>Home EV Charging:</span>
+                    <span class="${homeChargingAnnualCost < gasAnnualCost && homeChargingAnnualCost < publicChargingAnnualCost ? 'text-green-600' : 'cost'}">${formatCurrency(homeChargingAnnualCost)}</span>
+                </div>
+                <div class="result-item">
+                    <span>Gasoline Car:</span>
+                    <span class="cost">${formatCurrency(gasAnnualCost)}</span>
+                </div>
+                <div class="result-item">
+                    <span>Public EV Charging:</span>
+                    <span class="cost">${formatCurrency(publicChargingAnnualCost)}</span>
+                </div>
+            `;
+
+            // Populate Monthly Savings
+            monthlySavingsDiv.innerHTML = `
+                <h4 class="text-lg font-semibold text-gray-700 mb-2 mt-4">Monthly Savings (with Home Charging):</h4>
+                <div class="result-item">
+                    <span>vs. Gasoline Car:</span>
+                    <span class="savings">${formatCurrency(savingsVsGasMonthly)}</span>
+                </div>
+                <div class="result-item">
+                    <span>vs. Public EV Charging:</span>
+                    <span class="savings">${formatCurrency(savingsVsPublicMonthly)}</span>
+                </div>
+            `;
+            
+            // Populate Annual Savings
+            annualSavingsDiv.innerHTML = `
+                <h4 class="text-lg font-semibold text-gray-700 mb-2 mt-4">Annual Savings (with Home Charging):</h4>
+                <div class="result-item">
+                    <span>vs. Gasoline Car:</span>
+                    <span class="savings">${formatCurrency(savingsVsGasAnnual)}</span>
+                </div>
+                <div class="result-item">
+                    <span>vs. Public EV Charging:</span>
+                    <span class="savings">${formatCurrency(savingsVsPublicAnnual)}</span>
+                </div>
+            `;
+            
+            // Scroll to results for better UX on mobile
+            resultsSection.scrollIntoView({ behavior: 'smooth' });
+        });
+
+        // Trigger calculation on page load with default values for initial display (optional)
+        // For a cleaner initial state, we can leave this out and require a button click.
+        // calculateButton.click(); // Uncomment to calculate on load
+    </script>
+</body>
+</html>
