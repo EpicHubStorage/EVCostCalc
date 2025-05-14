@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flat-Rate Service Pricing Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa; /* Neutral light gray background */
+        }
+        .calculator-card {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05), 0 6px 6px rgba(0,0,0,0.07);
+            /* Adjusted padding for mobile */
+            padding: 1.5rem; 
+            margin-bottom: 1.5rem;
+        }
+        @media (min-width: 768px) { /* md breakpoint */
+            .calculator-card {
+                padding: 2rem;
+            }
+        }
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+        .input-group label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: #374151; /* Gray-700 */
+        }
+        .input-group input[type="number"], .input-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db; /* Gray-300 */
+            border-radius: 8px;
+            box-sizing: border-box;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        .input-group input[type="number"]:focus, .input-group select:focus {
+            border-color: #4aefc2; /* Brand primary accent */
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(74, 239, 194, 0.3); /* Brand primary accent shadow */
+        }
+        .input-tip {
+            font-size: 0.875rem;
+            color: #6b7280; /* Gray-500 */
+            margin-top: 0.25rem;
+        }
+        .calculate-button {
+            background-color: #4aefc2; /* Brand primary accent */
+            color: #003322; /* Dark teal text for contrast */
+            font-weight: 600;
+            padding: 0.85rem 1.5rem;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            width: 100%;
+        }
+        .calculate-button:hover {
+            background-color: #36c8a0; /* Darker shade of brand primary */
+        }
+        .results-card {
+            background-color: #e6fcf5; /* Light tint of brand primary */
+            border: 1px solid #4aefc2; /* Brand primary accent border */
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-top: 2rem;
+        }
+        .results-card h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #005740; /* Dark teal for heading in results */
+            margin-bottom: 1rem;
+        }
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #97e9d0; /* Lighter tint of brand primary for separator */
+        }
+        .result-item:last-child {
+            border-bottom: none;
+        }
+        .result-item span:first-child {
+            color: #007a58; /* Medium teal for result labels */
+            font-weight: 500;
+        }
+        .result-item span:last-child {
+            color: #005740; /* Dark teal for result values */
+            font-weight: 700;
+        }
+        .profit-value { /* Applied to both label and value spans for profit */
+            color: #4aefc2 !important; /* Brand primary accent for profit */
+        }
+        .info-banner {
+            background-color: #fff4e6; /* Light tint of brand secondary */
+            color: #c77700; /* Darker orange text */
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            border: 1px solid #ffbf73; /* Brand secondary border */
+        }
+        .error-message {
+            background-color: #ffe6f6; /* Light tint of brand tertiary */
+            color: #d90086; /* Darker pink text */
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            text-align: center;
+            border: 1px solid #ff3eaf; /* Brand tertiary border */
+            display: none; /* Hidden by default */
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-2xl mx-auto">
+        <header class="text-center mb-6 md:mb-8"> {/* Reduced bottom margin slightly for mobile */}
+            {/* Adjusted header font sizes for mobile */}
+            <h1 class="text-2xl sm:text-3xl font-bold text-gray-800">Flat-Rate Service Pricing Calculator</h1>
+            <p class="text-gray-600 mt-2 text-base sm:text-lg">Determine your service prices with confidence.</p>
+        </header>
+
+        <div class="info-banner">
+            <p><strong>Note:</strong> Sales tax is based on general state rates. Local sales taxes can vary. CC Processing fees are estimates. This tool provides estimates for planning purposes.</p>
+        </div>
+
+        <div class="calculator-card">
+            <h2 class="text-xl font-semibold text-gray-700 mb-6">Enter Task Details:</h2>
+            
+            {/* Grid for inputs: stacks to 1 column on mobile, 2 columns on md+ */}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6">
+                {/* Column 1 */}
+                <div>
+                    <div class="input-group">
+                        <label for="profitMargin">Desired Profit Margin (%):</label>
+                        <input type="number" id="profitMargin" value="20" step="1" min="0">
+                        <p class="input-tip">e.g., 20 for 20% profit</p>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="baseLaborRate">Base Labor Rate ($ per hour):</label>
+                        <input type="number" id="baseLaborRate" value="50" step="1" min="0">
+                    </div>
+
+                    <div class="input-group">
+                        <label for="employerTaxRate">Employer Tax Rate (%):</label>
+                        <input type="number" id="employerTaxRate" value="15" step="0.1" min="0">
+                        <p class="input-tip">e.g., FICA, SUI, FUI, Worker's Comp</p>
+                    </div>
+                </div>
+                {/* Column 2 */}
+                <div>
+                    <div class="input-group">
+                        <label for="taskTime">Estimated Time to Complete (hours):</label>
+                        <input type="number" id="taskTime" value="2" step="0.1" min="0.1">
+                    </div>
+
+                    <div class="input-group">
+                        <label for="materialsCost">Materials Cost (before tax) ($):</label>
+                        <input type="number" id="materialsCost" value="100" step="1" min="0">
+                    </div>
+
+                    <div class="input-group">
+                        <label for="stateSalesTax">State for Sales Tax (on Materials):</label>
+                        <select id="stateSalesTax">
+                            {/* Options will be populated by JavaScript */}
+                        </select>
+                    </div>
+                </div>
+            </div>
+            {/* Full width input for CC Processing Fee */}
+            <div class="input-group">
+                <label for="ccProcessingFee">Credit Card Processing Fee (%):</label>
+                <input type="number" id="ccProcessingFee" value="2.9" step="0.1" min="0">
+                <p class="input-tip">Avg. for major processors: 2.5% - 3.5% + possible fixed fee (not included here)</p>
+            </div>
+
+
+            <button id="calculateButton" class="calculate-button mt-4">Calculate Pricing</button>
+            <div id="errorMessage" class="error-message"></div>
+        </div>
+
+        <div id="resultsSection" class="results-card" style="display: none;">
+            <h3>Estimated Pricing:</h3>
+            <div id="pricingResults">
+                {/* Results will be injected here */}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const profitMarginEl = document.getElementById('profitMargin');
+        const baseLaborRateEl = document.getElementById('baseLaborRate');
+        const employerTaxRateEl = document.getElementById('employerTaxRate');
+        const taskTimeEl = document.getElementById('taskTime');
+        const materialsCostEl = document.getElementById('materialsCost');
+        const stateSalesTaxEl = document.getElementById('stateSalesTax');
+        const ccProcessingFeeEl = document.getElementById('ccProcessingFee');
+        const calculateButton = document.getElementById('calculateButton');
+        const resultsSection = document.getElementById('resultsSection');
+        const pricingResultsDiv = document.getElementById('pricingResults');
+        const errorMessageDiv = document.getElementById('errorMessage');
+
+        // US States and their general sales tax rates
+        const stateSalesTaxData = {
+            "Alabama": 4.00, "Alaska": 0.00, "Arizona": 5.60, "Arkansas": 6.50, 
+            "California": 7.25, "Colorado": 2.90, "Connecticut": 6.35, "Delaware": 0.00, 
+            "Florida": 6.00, "Georgia": 4.00, "Hawaii": 4.00, 
+            "Idaho": 6.00, "Illinois": 6.25, "Indiana": 7.00, "Iowa": 6.00, 
+            "Kansas": 6.50, "Kentucky": 6.00, "Louisiana": 5.00, 
+            "Maine": 5.50, "Maryland": 6.00, "Massachusetts": 6.25, "Michigan": 6.00, 
+            "Minnesota": 6.875, "Mississippi": 7.00, "Missouri": 4.225, "Montana": 0.00, 
+            "Nebraska": 5.50, "Nevada": 6.85, "New Hampshire": 0.00, "New Jersey": 6.625, 
+            "New Mexico": 5.125, "New York": 4.00, "North Carolina": 4.75, "North Dakota": 5.00, 
+            "Ohio": 5.75, "Oklahoma": 4.50, "Oregon": 0.00, "Pennsylvania": 6.00, 
+            "Rhode Island": 7.00, "South Carolina": 6.00, "South Dakota": 4.20, 
+            "Tennessee": 7.00, "Texas": 6.25, "Utah": 4.85, 
+            "Vermont": 6.00, "Virginia": 5.30, "Washington": 6.50, "West Virginia": 6.00, 
+            "Wisconsin": 5.00, "Wyoming": 4.00, "District of Columbia": 6.00
+        };
+
+        // Function to populate the state sales tax dropdown
+        function populateStates() {
+            const noTaxOption = document.createElement('option');
+            noTaxOption.value = "0.00"; // Value for no tax
+            noTaxOption.textContent = "No Sales Tax / State Not Listed";
+            stateSalesTaxEl.appendChild(noTaxOption);
+            
+            // Populate with states from the data object
+            for (const state in stateSalesTaxData) {
+                const option = document.createElement('option');
+                option.value = stateSalesTaxData[state]; // The tax rate is the value
+                option.textContent = state; // The state name is the displayed text
+                stateSalesTaxEl.appendChild(option);
+            }
+            // Set a default selection (e.g., Florida, or the "No Sales Tax" option if Florida isn't found)
+            if (stateSalesTaxData.hasOwnProperty('Florida')) {
+                 stateSalesTaxEl.value = stateSalesTaxData['Florida'];
+            } else {
+                stateSalesTaxEl.selectedIndex = 0; // Selects the first option ("No Sales Tax")
+            }
+        }
+        populateStates(); // Call the function to fill the dropdown
+
+        // Event Listener for the Calculate Button
+        calculateButton.addEventListener('click', () => {
+            // Clear previous error messages and results
+            errorMessageDiv.style.display = 'none';
+            errorMessageDiv.textContent = '';
+
+            // Get input values and parse them as floating-point numbers
+            const profitMargin = parseFloat(profitMarginEl.value);
+            const baseLaborRate = parseFloat(baseLaborRateEl.value);
+            const employerTaxRate = parseFloat(employerTaxRateEl.value);
+            const taskTime = parseFloat(taskTimeEl.value);
+            const materialsCost = parseFloat(materialsCostEl.value);
+            const selectedStateSalesTaxRate = parseFloat(stateSalesTaxEl.value);
+            const ccProcessingFeePercentage = parseFloat(ccProcessingFeeEl.value);
+
+            // --- Input Validation ---
+            let errors = []; // Array to hold any validation error messages
+            if (isNaN(profitMargin) || profitMargin < 0) errors.push("Profit margin must be a non-negative number.");
+            if (isNaN(baseLaborRate) || baseLaborRate < 0) errors.push("Base labor rate must be a non-negative number.");
+            if (isNaN(employerTaxRate) || employerTaxRate < 0) errors.push("Employer tax rate must be a non-negative number.");
+            if (isNaN(taskTime) || taskTime <= 0) errors.push("Task time must be a positive number.");
+            if (isNaN(materialsCost) || materialsCost < 0) errors.push("Materials cost must be a non-negative number.");
+            if (isNaN(selectedStateSalesTaxRate) || selectedStateSalesTaxRate < 0) errors.push("Sales tax rate is invalid.");
+            if (isNaN(ccProcessingFeePercentage) || ccProcessingFeePercentage < 0) errors.push("CC Processing Fee must be a non-negative number.");
+
+            // Validate that profit margin + CC fee doesn't exceed 100% (which would make the denominator zero or negative)
+            if ((profitMargin + ccProcessingFeePercentage) >= 100) {
+                errors.push("The sum of Profit Margin and CC Processing Fee must be less than 100%.");
+            }
+            
+            // If there are any errors, display them and stop the calculation
+            if (errors.length > 0) {
+                errorMessageDiv.innerHTML = errors.join('<br>'); // Display all error messages
+                errorMessageDiv.style.display = 'block';
+                resultsSection.style.display = 'none'; // Hide results section
+                return; // Exit the function
+            }
+
+            // --- Calculations ---
+
+            // 1. Effective Labor Rate (Base Labor + Employer Taxes)
+            const effectiveLaborRate = baseLaborRate * (1 + employerTaxRate / 100);
+            // 2. Total Labor Cost for the Task
+            const totalLaborCost = effectiveLaborRate * taskTime;
+            // 3. Materials Cost including Sales Tax
+            const materialsCostWithTax = materialsCost * (1 + selectedStateSalesTaxRate / 100);
+            // 4. Cost of Goods Sold (COGS) - This is the sum of labor and materials costs
+            const cogs = totalLaborCost + materialsCostWithTax;
+
+            // 5. Calculate the denominator for the retail price formula.
+            // This represents the portion of the retail price that is made up of COGS.
+            const denominator = 1 - (profitMargin / 100) - (ccProcessingFeePercentage / 100);
+            
+            let retailPrice;
+            // Ensure denominator is positive to avoid division by zero or negative results
+            if (denominator <= 0) { 
+                // This case should ideally be caught by the sum validation above, but this is a safeguard.
+                errorMessageDiv.innerHTML = "Calculation error: Profit margin and CC processing fee combined are too high, leading to an invalid price. Please adjust.";
+                errorMessageDiv.style.display = 'block';
+                resultsSection.style.display = 'none';
+                return; // Exit
+            } else {
+                // Calculate Retail Price: COGS / (1 - Profit Margin % - CC Processing Fee %)
+                retailPrice = cogs / denominator;
+            }
+            
+            // 6. Calculate the actual amount of the Credit Card Processing Fee based on the retail price
+            const ccProcessingFeeAmount = retailPrice * (ccProcessingFeePercentage / 100);
+            // 7. Calculate the Estimated Profit in USD based on the retail price and desired margin
+            const estimatedProfitUSD = retailPrice * (profitMargin / 100);
+            
+            // --- Display Results ---
+            resultsSection.style.display = 'block'; // Make the results section visible
+
+            // Helper function to format numbers as currency (USD)
+            const formatCurrency = (amount) => {
+                return amount.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+            };
+            
+            // Populate the results section with calculated values
+            pricingResultsDiv.innerHTML = `
+                <div class="result-item">
+                    <span>Total Labor Cost:</span>
+                    <span>${formatCurrency(totalLaborCost)}</span>
+                </div>
+                <div class="result-item">
+                    <span>Materials Cost (incl. tax):</span>
+                    <span>${formatCurrency(materialsCostWithTax)}</span>
+                </div>
+                <div class="result-item">
+                    <span>Subtotal (Labor + Materials):</span>
+                    <span>${formatCurrency(cogs)}</span>
+                </div>
+                <div class="result-item">
+                    <span>Est. CC Processing Fee Amount:</span>
+                    <span>${formatCurrency(ccProcessingFeeAmount)}</span>
+                </div>
+                <hr class="my-2 border-opacity-50" style="border-color: #4aefc2;"> {/* Branded separator */}
+                <div class="result-item">
+                    <span class="font-bold text-lg">Estimated Task Retail Price:</span>
+                    <span class="font-bold text-lg">${formatCurrency(retailPrice)}</span>
+                </div>
+                <div class="result-item">
+                    <span class="font-bold text-lg profit-value">Estimated Profit:</span>
+                    <span class="font-bold text-lg profit-value">${formatCurrency(estimatedProfitUSD)}</span>
+                </div>
+            `;
+            
+            // Scroll the results into view, useful on mobile
+            resultsSection.scrollIntoView({ behavior: 'smooth' });
+        });
+    </script>
+</body>
+</html>
