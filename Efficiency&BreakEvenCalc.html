@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Labor Efficiency & Break-Even Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .input-group label {
+            @apply block text-sm font-medium text-gray-700 mb-1;
+        }
+        .input-group input[type="number"] {
+            @apply mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm;
+        }
+        .output-group p {
+            @apply text-sm text-gray-700 mb-1;
+        }
+        .output-group .value {
+            @apply font-semibold text-indigo-600;
+        }
+        .output-group .highlight {
+            @apply text-lg font-bold text-indigo-700;
+        }
+        .error-message {
+            @apply text-red-500 text-sm mt-1 h-5; /* Added fixed height to prevent layout shifts */
+        }
+    </style>
+</head>
+<body class="bg-gray-50 flex items-center justify-center min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-3xl w-full space-y-8 bg-white p-10 rounded-xl shadow-lg">
+        <div>
+            <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+                Labor Efficiency & Break-Even Calculator
+            </h2>
+            <p class="mt-2 text-center text-sm text-gray-600">
+                Enter your company's data to analyze labor efficiency and calculate your break-even cost per billable hour.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+            <div class="space-y-6">
+                <h3 class="text-lg font-medium leading-6 text-gray-900 border-b pb-2">Daily & Employee Inputs</h3>
+                <div class="input-group">
+                    <label for="totalHoursOnClock">Total Hours on Clock per Day (e.g., 8)</label>
+                    <input type="number" id="totalHoursOnClock" value="8" step="0.1">
+                    <p id="error-totalHoursOnClock" class="error-message"></p>
+                </div>
+                <div class="input-group">
+                    <label for="actualHoursOnSite">Actual Hours On-Site Working (Billable, e.g., 5)</label>
+                    <input type="number" id="actualHoursOnSite" value="5" step="0.1">
+                    <p id="error-actualHoursOnSite" class="error-message"></p>
+                </div>
+                <div class="input-group">
+                    <label for="employeeLaborRate">Employee Base Hourly Wage Rate ($)</label>
+                    <input type="number" id="employeeLaborRate" value="25" step="0.01">
+                    <p id="error-employeeLaborRate" class="error-message"></p>
+                </div>
+                <div class="input-group">
+                    <label for="employerPayrollTaxRate">Employer Payroll Tax Rate (%)</label>
+                    <input type="number" id="employerPayrollTaxRate" value="10" step="0.01">
+                    <p id="error-employerPayrollTaxRate" class="error-message"></p>
+                </div>
+            </div>
+
+            <div class="space-y-6">
+                <h3 class="text-lg font-medium leading-6 text-gray-900 border-b pb-2">Company & Annual Inputs</h3>
+                <div class="input-group">
+                    <label for="monthlyCompanyOverhead">Total Monthly Company Overhead ($)</label>
+                    <input type="number" id="monthlyCompanyOverhead" value="3000" step="1">
+                    <p id="error-monthlyCompanyOverhead" class="error-message"></p>
+                </div>
+                <div class="input-group">
+                    <label for="workdaysPerYear">Number of Workdays per Year</label>
+                    <input type="number" id="workdaysPerYear" value="250" step="1">
+                    <p id="error-workdaysPerYear" class="error-message"></p>
+                </div>
+                <div class="input-group">
+                    <label for="targetAnnualBillableHours">Target Annual Billable Hours (per employee)</label>
+                    <input type="number" id="targetAnnualBillableHours" value="2000" step="1">
+                    <p id="error-targetAnnualBillableHours" class="error-message"></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-8">
+            <button id="calculateButton" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                Calculate Break-Even
+            </button>
+        </div>
+
+        <div id="resultsSection" class="mt-10 space-y-6 hidden">
+            <h3 class="text-xl font-semibold leading-7 text-gray-900 border-b pb-3">Calculation Results</h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                <div class="output-group bg-gray-50 p-4 rounded-lg shadow">
+                    <h4 class="font-medium text-gray-800 mb-2">Daily Efficiency:</h4>
+                    <p>Actual Time On-Site Efficiency: <span id="actualTimeOnSiteEfficiency" class="value"></span></p>
+                </div>
+
+                <div class="output-group bg-gray-50 p-4 rounded-lg shadow">
+                    <h4 class="font-medium text-gray-800 mb-2">Annual Billable Hours Impact:</h4>
+                    <p>Projected Annual Billable Hours: <span id="projectedAnnualBillableHours" class="value"></span></p>
+                    <p>Variance from Target (<span id="targetHoursDisplay" class="value"></span> hours): <span id="varianceFromTarget" class="value"></span> hours</p>
+                    <p>Percentage of Target Achieved: <span id="percentageOfTargetAchieved" class="value"></span></p>
+                </div>
+            </div>
+
+            <div class="output-group bg-gray-50 p-4 rounded-lg shadow">
+                <h4 class="font-medium text-gray-800 mb-2">Cost Analysis:</h4>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
+                    <p>Employee Base Hourly Wage: <span id="displayEmployeeLaborRate" class="value"></span></p>
+                    <p>Employer Payroll Taxes per Hour: <span id="displayEmployerPayrollTaxesPerHour" class="value"></span></p>
+                    <p>Total Cost of Employee per Paid Hour: <span id="totalEmployeeCostPerPaidHour" class="value"></span></p>
+                    <p>Effective Direct Labor Cost per BILLABLE Hour: <span id="effectiveDirectLaborCostPerBillableHour" class="value"></span></p>
+                    <p>Allocated Hourly Company Overhead: <span id="allocatedHourlyCompanyOverhead" class="value"></span></p>
+                </div>
+            </div>
+            
+            <div class="output-group bg-indigo-50 p-6 rounded-lg shadow-md text-center">
+                <h4 class="text-lg font-semibold text-indigo-800 mb-2">Your True Break-Even Cost per Billable Hour:</h4>
+                <p id="trueBreakEvenCostPerHour" class="highlight text-3xl"></p>
+                <p class="text-xs text-indigo-700 mt-1">(This is the minimum rate to charge to cover all specified costs, excluding profit.)</p>
+            </div>
+
+             <div class="output-group bg-green-50 p-4 rounded-lg shadow">
+                <h4 class="font-medium text-gray-800 mb-2">Profit Projection:</h4>
+                <div class="input-group">
+                    <div class="flex items-center space-x-4">
+                        <label for="desiredProfitMargin" class="whitespace-nowrap">Desired Profit Margin (%):</label>
+                        <input type="number" id="desiredProfitMargin" value="20" step="1" class="w-24">
+                        <button id="calculateWithProfitButton" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                            Calculate Billable Rate
+                        </button>
+                    </div>
+                     <p id="error-desiredProfitMargin" class="error-message"></p> </div>
+                <p class="mt-2">Suggested Customer Billable Rate (with profit): <span id="suggestedCustomerBillableRate" class="value text-xl text-green-700 font-bold">N/A</span></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Helper function to get numeric value from input
+        function getNumericValue(id, errorId) {
+            const element = document.getElementById(id);
+            const errorElement = document.getElementById(errorId);
+            errorElement.textContent = ''; // Clear previous error
+            const value = parseFloat(element.value);
+
+            if (element.value.trim() === '') { // Check if input is empty
+                errorElement.textContent = 'This field cannot be empty.';
+                return NaN;
+            }
+            if (isNaN(value) || value < 0) {
+                errorElement.textContent = 'Please enter a valid positive number.';
+                return NaN;
+            }
+            if (id === 'actualHoursOnSite' && value > parseFloat(document.getElementById('totalHoursOnClock').value)) {
+                 errorElement.textContent = 'On-site hours cannot exceed total hours on clock.';
+                 return NaN;
+            }
+            return value;
+        }
+
+        // Helper function to format currency
+        function formatCurrency(value) {
+            if (isNaN(value) || !isFinite(value)) return 'N/A';
+            return `$${value.toFixed(2)}`;
+        }
+
+        // Helper function to format percentage
+        function formatPercentage(value) {
+            if (isNaN(value)|| !isFinite(value)) return 'N/A';
+            return `${value.toFixed(2)}%`;
+        }
+        
+        // Main calculation logic
+        function performCalculations() {
+            // Clear previous errors and results visibility
+            document.querySelectorAll('.error-message').forEach(el => el.textContent = '');
+            const resultsSection = document.getElementById('resultsSection');
+            document.getElementById('suggestedCustomerBillableRate').textContent = 'N/A'; // Reset profit calculation
+            
+            // Get Inputs
+            const totalHoursOnClock = getNumericValue('totalHoursOnClock', 'error-totalHoursOnClock');
+            const actualHoursOnSite = getNumericValue('actualHoursOnSite', 'error-actualHoursOnSite');
+            const employeeLaborRate = getNumericValue('employeeLaborRate', 'error-employeeLaborRate');
+            const employerPayrollTaxRate = getNumericValue('employerPayrollTaxRate', 'error-employerPayrollTaxRate');
+            const monthlyCompanyOverhead = getNumericValue('monthlyCompanyOverhead', 'error-monthlyCompanyOverhead');
+            const workdaysPerYear = getNumericValue('workdaysPerYear', 'error-workdaysPerYear');
+            const targetAnnualBillableHours = getNumericValue('targetAnnualBillableHours', 'error-targetAnnualBillableHours');
+
+            // Validate all inputs were successfully parsed
+            if ([totalHoursOnClock, actualHoursOnSite, employeeLaborRate, employerPayrollTaxRate, monthlyCompanyOverhead, workdaysPerYear, targetAnnualBillableHours].some(isNaN)) {
+                resultsSection.classList.add('hidden'); // Hide results if there's an error
+                return; // Stop calculation if any input is invalid
+            }
+            if (actualHoursOnSite === 0) { // Specific check for actualHoursOnSite being zero
+                 document.getElementById('error-actualHoursOnSite').textContent = 'Actual hours on site cannot be zero for these calculations.';
+                 resultsSection.classList.add('hidden');
+                 return;
+            }
+             if (totalHoursOnClock === 0) { // Specific check for totalHoursOnClock being zero
+                 document.getElementById('error-totalHoursOnClock').textContent = 'Total hours on clock cannot be zero.';
+                 resultsSection.classList.add('hidden');
+                 return;
+            }
+
+
+            // 1. Daily "Actual Time On-Site Efficiency" (Utilization Rate)
+            const actualTimeOnSiteEfficiency = (actualHoursOnSite / totalHoursOnClock) * 100;
+
+            // 2. Projected Annual Billable Hours
+            const projectedAnnualBillableHours = actualHoursOnSite * workdaysPerYear;
+
+            // 3. Variance from Target Annual Billable Hours
+            const varianceFromTarget = projectedAnnualBillableHours - targetAnnualBillableHours;
+            let percentageOfTargetAchieved = 0;
+            if (targetAnnualBillableHours > 0) { // Avoid division by zero if target is 0
+                percentageOfTargetAchieved = (projectedAnnualBillableHours / targetAnnualBillableHours) * 100;
+            }
+
+
+            // 4. Employee's Total Cost per Hour to Company (including payroll taxes)
+            const employerPayrollTaxAmountPerHour = employeeLaborRate * (employerPayrollTaxRate / 100);
+            const totalEmployeeCostPerPaidHour = employeeLaborRate + employerPayrollTaxAmountPerHour;
+
+            // 5. Effective Direct Labor Cost per BILLABLE Hour
+            const totalDailyWageAndTaxCost = totalEmployeeCostPerPaidHour * totalHoursOnClock;
+            const effectiveDirectLaborCostPerBillableHour = totalDailyWageAndTaxCost / actualHoursOnSite; // actualHoursOnSite already validated not to be 0
+
+            // 6. Hourly Company Overhead Cost
+            const totalAnnualCompanyOverhead = monthlyCompanyOverhead * 12;
+            let allocatedHourlyCompanyOverhead = 0;
+            if (projectedAnnualBillableHours > 0) {
+                 allocatedHourlyCompanyOverhead = totalAnnualCompanyOverhead / projectedAnnualBillableHours;
+            } else {
+                // This case should ideally be prevented by actualHoursOnSite > 0 check,
+                // but as a fallback, if projectedAnnualBillableHours is 0 (e.g., workdaysPerYear is 0)
+                allocatedHourlyCompanyOverhead = Infinity; 
+            }
+
+
+            // 7. True Break-Even Cost per Hour
+            const trueBreakEvenCostPerHour = effectiveDirectLaborCostPerBillableHour + allocatedHourlyCompanyOverhead;
+
+            // Display Results
+            resultsSection.classList.remove('hidden');
+
+            document.getElementById('actualTimeOnSiteEfficiency').textContent = formatPercentage(actualTimeOnSiteEfficiency);
+            document.getElementById('projectedAnnualBillableHours').textContent = projectedAnnualBillableHours.toFixed(0) + ' hours';
+            document.getElementById('targetHoursDisplay').textContent = targetAnnualBillableHours.toFixed(0);
+            document.getElementById('varianceFromTarget').textContent = varianceFromTarget.toFixed(0);
+            document.getElementById('percentageOfTargetAchieved').textContent = formatPercentage(percentageOfTargetAchieved);
+
+            document.getElementById('displayEmployeeLaborRate').textContent = formatCurrency(employeeLaborRate);
+            document.getElementById('displayEmployerPayrollTaxesPerHour').textContent = formatCurrency(employerPayrollTaxAmountPerHour);
+            document.getElementById('totalEmployeeCostPerPaidHour').textContent = formatCurrency(totalEmployeeCostPerPaidHour);
+            document.getElementById('effectiveDirectLaborCostPerBillableHour').textContent = formatCurrency(effectiveDirectLaborCostPerBillableHour);
+            document.getElementById('allocatedHourlyCompanyOverhead').textContent = formatCurrency(allocatedHourlyCompanyOverhead);
+            
+            document.getElementById('trueBreakEvenCostPerHour').textContent = formatCurrency(trueBreakEvenCostPerHour);
+            
+            // Store break-even cost for profit calculation
+            resultsSection.dataset.breakEvenCost = trueBreakEvenCostPerHour;
+        }
+
+        function calculateBillableRateWithProfit() {
+            const resultsSection = document.getElementById('resultsSection');
+            const breakEvenCost = parseFloat(resultsSection.dataset.breakEvenCost);
+            const suggestedRateSpan = document.getElementById('suggestedCustomerBillableRate');
+            
+            if (isNaN(breakEvenCost) || !isFinite(breakEvenCost)) {
+                suggestedRateSpan.textContent = 'Calculate break-even first.';
+                // Optionally, also show an error near the profit margin input or button
+                document.getElementById('error-desiredProfitMargin').textContent = 'Please calculate break-even costs before adding profit.';
+                return;
+            }
+            // Clear any previous break-even related error for the profit margin
+             document.getElementById('error-desiredProfitMargin').textContent = '';
+
+
+            const desiredProfitMarginPercent = getNumericValue('desiredProfitMargin', 'error-desiredProfitMargin'); 
+            
+            if (isNaN(desiredProfitMarginPercent)) {
+                suggestedRateSpan.textContent = 'Invalid profit margin.'; // Show error in the result line
+                return;
+            }
+
+            const profitMarginDecimal = desiredProfitMarginPercent / 100;
+            // Profit margin is calculated as a markup on cost.
+            // Selling Price = Cost * (1 + Margin)
+            const suggestedRate = breakEvenCost * (1 + profitMarginDecimal);
+            
+            suggestedRateSpan.textContent = formatCurrency(suggestedRate);
+        }
+
+        // Event Listeners
+        document.getElementById('calculateButton').addEventListener('click', performCalculations);
+        document.getElementById('calculateWithProfitButton').addEventListener('click', calculateBillableRateWithProfit);
+
+    </script>
+</body>
+</html>
