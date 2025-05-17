@@ -105,7 +105,8 @@
                     <h4 class="font-medium text-gray-800 mb-2">Annual Billable Hours Impact:</h4>
                     <p>Projected Annual Billable Hours: <span id="projectedAnnualBillableHours" class="value"></span></p>
                     <p>Variance from Target (<span id="targetHoursDisplay" class="value"></span> hours): <span id="varianceFromTarget" class="value"></span> hours</p>
-                    <p>Percentage of Target Achieved: <span id="percentageOfTargetAchieved" class="value"></span></p>
+                    {/* */}
+                    <p>Actual Efficiency: <span id="percentageOfTargetAchieved" class="value"></span></p>
                 </div>
             </div>
 
@@ -129,15 +130,16 @@
              <div class="output-group bg-green-50 p-4 rounded-lg shadow">
                 <h4 class="font-medium text-gray-800 mb-2">Profit Projection:</h4>
                 <div class="input-group">
-                    <div class="flex items-center space-x-4">
+                    <div class="flex flex-col items-center space-y-3 sm:flex-row sm:items-center sm:space-x-4 sm:space-y-0 mt-2">
                         <label for="desiredProfitMargin" class="whitespace-nowrap">Desired Profit Margin (%):</label>
-                        <input type="number" id="desiredProfitMargin" value="20" step="1" class="w-24">
-                        <button id="calculateWithProfitButton" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                        <input type="number" id="desiredProfitMargin" value="20" step="1" class="w-24 sm:mt-0">
+                        <button id="calculateWithProfitButton" class="w-full sm:w-auto px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                             Calculate Billable Rate
                         </button>
                     </div>
-                     <p id="error-desiredProfitMargin" class="error-message"></p> </div>
-                <p class="mt-2">Suggested Customer Billable Rate (with profit): <span id="suggestedCustomerBillableRate" class="value text-xl text-green-700 font-bold">N/A</span></p>
+                     <p id="error-desiredProfitMargin" class="error-message text-center sm:text-left"></p>
+                </div>
+                <p class="mt-2 text-center sm:text-left">Suggested Customer Billable Rate (with profit): <span id="suggestedCustomerBillableRate" class="value text-xl text-green-700 font-bold">N/A</span></p>
             </div>
         </div>
     </div>
@@ -254,7 +256,7 @@
             document.getElementById('projectedAnnualBillableHours').textContent = projectedAnnualBillableHours.toFixed(0) + ' hours';
             document.getElementById('targetHoursDisplay').textContent = targetAnnualBillableHours.toFixed(0);
             document.getElementById('varianceFromTarget').textContent = varianceFromTarget.toFixed(0);
-            document.getElementById('percentageOfTargetAchieved').textContent = formatPercentage(percentageOfTargetAchieved);
+            document.getElementById('percentageOfTargetAchieved').textContent = formatPercentage(percentageOfTargetAchieved); // ID remains the same, value is still % of target
 
             document.getElementById('displayEmployeeLaborRate').textContent = formatCurrency(employeeLaborRate);
             document.getElementById('displayEmployerPayrollTaxesPerHour').textContent = formatCurrency(employerPayrollTaxAmountPerHour);
@@ -275,24 +277,20 @@
             
             if (isNaN(breakEvenCost) || !isFinite(breakEvenCost)) {
                 suggestedRateSpan.textContent = 'Calculate break-even first.';
-                // Optionally, also show an error near the profit margin input or button
                 document.getElementById('error-desiredProfitMargin').textContent = 'Please calculate break-even costs before adding profit.';
                 return;
             }
-            // Clear any previous break-even related error for the profit margin
              document.getElementById('error-desiredProfitMargin').textContent = '';
 
 
             const desiredProfitMarginPercent = getNumericValue('desiredProfitMargin', 'error-desiredProfitMargin'); 
             
             if (isNaN(desiredProfitMarginPercent)) {
-                suggestedRateSpan.textContent = 'Invalid profit margin.'; // Show error in the result line
+                suggestedRateSpan.textContent = 'Invalid profit margin.'; 
                 return;
             }
 
             const profitMarginDecimal = desiredProfitMarginPercent / 100;
-            // Profit margin is calculated as a markup on cost.
-            // Selling Price = Cost * (1 + Margin)
             const suggestedRate = breakEvenCost * (1 + profitMarginDecimal);
             
             suggestedRateSpan.textContent = formatCurrency(suggestedRate);
@@ -305,3 +303,4 @@
     </script>
 </body>
 </html>
+
