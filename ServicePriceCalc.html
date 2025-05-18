@@ -20,7 +20,7 @@
         }
         @media (min-width: 768px) { /* md breakpoint */
             .calculator-card {
-                padding: 2rem;
+                padding: 2rem; /* Keep slightly larger padding for larger screens if desired, but layout is single column */
             }
         }
         .input-group {
@@ -129,60 +129,58 @@
         </header>
 
         <div class="info-banner">
-            <p><strong>Note:</strong> Sales tax is based on general state rates. Local sales taxes can vary. CC Processing fees & Income Tax are estimates. This tool provides estimates for planning purposes.</p>
+            <p><strong>Note:</strong> Sales tax is based on general state rates. Local sales taxes can vary. CC Processing fees, Employer Taxes & Income Tax are estimates. This tool provides estimates for planning purposes.</p>
         </div>
 
         <div class="calculator-card">
             <h2 class="text-xl font-semibold text-gray-700 mb-6">Enter Task Details:</h2>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6">
-                
-                <div>
-                    <div class="input-group">
-                        <label for="profitMargin">Desired Profit Margin (%):</label>
-                        <input type="number" id="profitMargin" value="20" step="1" min="0">
-                        <p class="input-tip">e.g., 20 for 20% profit (before income tax)</p>
-                    </div>
+            <div>
+                <div class="input-group">
+                    <label for="profitMargin">Desired Profit Margin (%):</label>
+                    <input type="number" id="profitMargin" value="20" step="1" min="0">
+                    <p class="input-tip">e.g., 20 for 20% profit (before income tax)</p>
+                </div>
 
-                    <div class="input-group">
-                        <label for="baseLaborRate">Base Labor Rate ($ per hour):</label>
-                        <input type="number" id="baseLaborRate" value="50" step="1" min="0">
-                    </div>
-
-                    <div class="input-group">
-                        <label for="employerTaxRate">Employer Tax Rate (%):</label>
-                        <input type="number" id="employerTaxRate" value="15" step="0.1" min="0">
-                        <p class="input-tip">e.g., FICA, SUI, FUI, Worker's Comp</p>
-                    </div>
-                     <div class="input-group">
-                        <label for="ccProcessingFee">Credit Card Processing Fee (%):</label>
-                        <input type="number" id="ccProcessingFee" value="2.9" step="0.1" min="0">
-                        <p class="input-tip">Avg: 2.5% - 3.5% (applied to retail price)</p>
-                    </div>
+                <div class="input-group">
+                    <label for="baseLaborRate">Labor Rate ($ per hour):</label>
+                    <input type="number" id="baseLaborRate" value="50" step="1" min="0">
+                    <p class="input-tip">Your direct hourly labor cost.</p>
                 </div>
                 
-                <div>
-                    <div class="input-group">
-                        <label for="taskTime">Estimated Time to Complete (hours):</label>
-                        <input type="number" id="taskTime" value="2" step="0.1" min="0.1">
-                    </div>
+                <div class="input-group">
+                    <label for="employerTaxRate">Employer Tax Rate (%):</label>
+                    <input type="number" id="employerTaxRate" value="15" step="0.1" min="0">
+                    <p class="input-tip">e.g., FICA, SUI, FUI (on labor cost)</p>
+                </div>
 
-                    <div class="input-group">
-                        <label for="materialsCost">Materials Cost (before tax) ($):</label>
-                        <input type="number" id="materialsCost" value="100" step="1" min="0">
-                    </div>
+                <div class="input-group">
+                    <label for="taskTime">Estimated Time to Complete (hours):</label>
+                    <input type="number" id="taskTime" value="2" step="0.1" min="0.1">
+                </div>
 
-                    <div class="input-group">
-                        <label for="stateSalesTax">State for Sales Tax (on Materials):</label>
-                        <select id="stateSalesTax">
-                            {/* Options will be populated by JavaScript */}
-                        </select>
-                    </div>
-                    <div class="input-group">
-                        <label for="incomeTaxRate">Assumed Income Tax Rate (%):</label>
-                        <input type="number" id="incomeTaxRate" value="25" step="0.1" min="0">
-                        <p class="input-tip">Your estimated combined federal/state income tax rate on profit.</p>
-                    </div>
+                <div class="input-group">
+                    <label for="materialsCost">Materials Cost (before tax) ($):</label>
+                    <input type="number" id="materialsCost" value="100" step="1" min="0">
+                </div>
+
+                <div class="input-group">
+                    <label for="stateSalesTax">State for Sales Tax (on Materials):</label>
+                    <select id="stateSalesTax">
+                        {/* Options will be populated by JavaScript */}
+                    </select>
+                </div>
+                
+                <div class="input-group">
+                    <label for="ccProcessingFee">Credit Card Processing Fee (%):</label>
+                    <input type="number" id="ccProcessingFee" value="2.9" step="0.1" min="0">
+                    <p class="input-tip">Avg: 2.5% - 3.5% (applied to retail price)</p>
+                </div>
+                
+                <div class="input-group">
+                    <label for="incomeTaxRate">Assumed Income Tax Rate (%):</label>
+                    <input type="number" id="incomeTaxRate" value="25" step="0.1" min="0">
+                    <p class="input-tip">Your estimated combined federal/state income tax rate on profit.</p>
                 </div>
             </div>
             
@@ -207,7 +205,7 @@
         const materialsCostEl = document.getElementById('materialsCost');
         const stateSalesTaxEl = document.getElementById('stateSalesTax');
         const ccProcessingFeeEl = document.getElementById('ccProcessingFee');
-        const incomeTaxRateEl = document.getElementById('incomeTaxRate'); // New element for income tax rate
+        const incomeTaxRateEl = document.getElementById('incomeTaxRate');
         const calculateButton = document.getElementById('calculateButton');
         const resultsSection = document.getElementById('resultsSection');
         const pricingResultsDiv = document.getElementById('pricingResults');
@@ -260,26 +258,24 @@
             // Get input values
             const profitMargin = parseFloat(profitMarginEl.value);
             const baseLaborRate = parseFloat(baseLaborRateEl.value);
-            const employerTaxRate = parseFloat(employerTaxRateEl.value);
+            const employerTaxRatePercentage = parseFloat(employerTaxRateEl.value);
             const taskTime = parseFloat(taskTimeEl.value);
             const materialsCost = parseFloat(materialsCostEl.value);
             const selectedStateSalesTaxRate = parseFloat(stateSalesTaxEl.value);
             const ccProcessingFeePercentage = parseFloat(ccProcessingFeeEl.value);
-            const incomeTaxRatePercentage = parseFloat(incomeTaxRateEl.value); // Get income tax rate
+            const incomeTaxRatePercentage = parseFloat(incomeTaxRateEl.value);
 
             // --- Input Validation ---
             let errors = [];
             if (isNaN(profitMargin) || profitMargin < 0) errors.push("Profit margin must be a non-negative number.");
             if (isNaN(baseLaborRate) || baseLaborRate < 0) errors.push("Base labor rate must be a non-negative number.");
-            if (isNaN(employerTaxRate) || employerTaxRate < 0) errors.push("Employer tax rate must be a non-negative number.");
+            if (isNaN(employerTaxRatePercentage) || employerTaxRatePercentage < 0) errors.push("Employer tax rate must be a non-negative number.");
             if (isNaN(taskTime) || taskTime <= 0) errors.push("Task time must be a positive number.");
             if (isNaN(materialsCost) || materialsCost < 0) errors.push("Materials cost must be a non-negative number.");
             if (isNaN(selectedStateSalesTaxRate) || selectedStateSalesTaxRate < 0) errors.push("Sales tax rate is invalid.");
             if (isNaN(ccProcessingFeePercentage) || ccProcessingFeePercentage < 0) errors.push("CC Processing Fee must be a non-negative number.");
             if (isNaN(incomeTaxRatePercentage) || incomeTaxRatePercentage < 0 || incomeTaxRatePercentage > 100) errors.push("Income Tax Rate must be between 0 and 100.");
 
-
-            // Validate that profit margin + CC fee doesn't exceed 100%
             if ((profitMargin + ccProcessingFeePercentage) >= 100) {
                 errors.push("The sum of Profit Margin and CC Processing Fee must be less than 100% to allow for costs.");
             }
@@ -292,21 +288,23 @@
             }
 
             // --- Calculations ---
-            // 1. Effective Labor Rate
-            const effectiveLaborRate = baseLaborRate * (1 + employerTaxRate / 100);
-            // 2. Total Labor Cost
-            const totalLaborCost = effectiveLaborRate * taskTime;
-            // 3. Materials Cost with Tax
+            // 1. Labor Rate for pricing is the direct labor rate entered
+            const laborRateForPricing = baseLaborRate; 
+            // 2. Total Labor Cost (used for COGS and for calculating employer tax set-aside)
+            const totalLaborCost = laborRateForPricing * taskTime;
+            // 3. Amount to Set Aside for Employer Taxes (informational, based on total labor cost)
+            const employerTaxesToSetAside = totalLaborCost * (employerTaxRatePercentage / 100);
+            // 4. Materials Cost with sales tax
             const materialsCostWithTax = materialsCost * (1 + selectedStateSalesTaxRate / 100);
-            // 4. Cost of Goods Sold (COGS - labor and materials)
-            const cogs = totalLaborCost + materialsCostWithTax;
+            // 5. Cost of Goods Sold (COGS - direct labor and materials for pricing purposes)
+            // Employer taxes are NOT added to COGS for the retail price calculation here, as per the new logic.
+            const cogs = totalLaborCost + materialsCostWithTax; 
 
-            // 5. Calculate Retail Price
-            // Retail Price = COGS / (1 - ProfitMargin% - CCFee%)
+            // 6. Calculate Retail Price: COGS / (1 - Profit Margin % - CC Processing Fee %)
             const denominator = 1 - (profitMargin / 100) - (ccProcessingFeePercentage / 100);
             
             let retailPrice;
-            if (denominator <= 0) { // Should be caught by earlier validation, but good safeguard
+            if (denominator <= 0) { // Safeguard, should be caught by earlier validation
                 errorMessageDiv.innerHTML = "Calculation error: Profit margin and CC processing fee combined are too high. Please adjust.";
                 errorMessageDiv.style.display = 'block';
                 resultsSection.style.display = 'none';
@@ -315,18 +313,22 @@
                 retailPrice = cogs / denominator;
             }
             
-            // 6. Calculate CC Processing Fee Amount based on the retail price
+            // 7. Calculate CC Processing Fee Amount based on the retail price
             const ccProcessingFeeAmount = retailPrice * (ccProcessingFeePercentage / 100);
             
-            // 7. Calculate Estimated Profit (Before Income Tax)
-            const estimatedProfitBeforeTax = retailPrice * (profitMargin / 100);
-            //    Alternative: retailPrice - cogs - ccProcessingFeeAmount;
+            // 8. Calculate Estimated Profit (Before Income Tax and before considering the employer tax set-aside as an expense against this profit)
+            // This is the profit margin achieved on the retail price.
+            const estimatedProfitBeforeAnyTaxes = retailPrice * (profitMargin / 100);
 
-            // 8. Calculate Estimated Taxes Owed (on profit)
-            const estimatedTaxesOwed = estimatedProfitBeforeTax * (incomeTaxRatePercentage / 100);
+            // 9. Calculate Estimated Income Taxes Owed (on the profit calculated in step 8)
+            const estimatedIncomeTaxesOwedOnProfit = estimatedProfitBeforeAnyTaxes * (incomeTaxRatePercentage / 100);
 
-            // 9. Calculate Estimated Profit (After Income Tax)
-            const estimatedProfitAfterTax = estimatedProfitBeforeTax - estimatedTaxesOwed;
+            // 10. Calculate Estimated Profit (After Income Tax, but still before accounting for employer tax set-aside as an expense from this profit)
+            const estimatedProfitAfterIncomeTax = estimatedProfitBeforeAnyTaxes - estimatedIncomeTaxesOwedOnProfit;
+            
+            // 11. Calculate Final Net Profit (After Income Tax AND after accounting for employer tax set-aside)
+            const estimatedNetProfit = estimatedProfitAfterIncomeTax - employerTaxesToSetAside;
+
 
             // --- Display Results ---
             resultsSection.style.display = 'block'; 
@@ -337,7 +339,7 @@
             
             pricingResultsDiv.innerHTML = `
                 <div class="result-item">
-                    <span>Total Labor Cost:</span>
+                    <span>Total Labor Cost (Direct):</span>
                     <span>${formatCurrency(totalLaborCost)}</span>
                 </div>
                 <div class="result-item">
@@ -345,7 +347,7 @@
                     <span>${formatCurrency(materialsCostWithTax)}</span>
                 </div>
                 <div class="result-item">
-                    <span>Subtotal (Labor + Materials):</span>
+                    <span>Subtotal (Direct Labor + Materials):</span>
                     <span>${formatCurrency(cogs)}</span>
                 </div>
                 <div class="result-item">
@@ -359,16 +361,20 @@
                 </div>
                 <hr class="my-2 border-opacity-30" style="border-color: #4aefc2;">
                 <div class="result-item">
-                    <span class="font-semibold profit-value">Est. Profit (Before Income Tax):</span>
-                    <span class="font-semibold profit-value">${formatCurrency(estimatedProfitBeforeTax)}</span>
+                    <span class="font-semibold">Amount to Set Aside for Employer Taxes (${employerTaxRatePercentage}% of Labor Cost):</span>
+                    <span class="font-semibold">${formatCurrency(employerTaxesToSetAside)}</span>
                 </div>
                 <div class="result-item">
-                    <span>Est. Income Taxes Owed (${incomeTaxRatePercentage}% of profit):</span>
-                    <span>${formatCurrency(estimatedTaxesOwed)}</span>
+                    <span class="font-semibold profit-value">Est. Profit (Before Income Tax & Employer Tax Set-Aside):</span>
+                    <span class="font-semibold profit-value">${formatCurrency(estimatedProfitBeforeAnyTaxes)}</span>
                 </div>
                 <div class="result-item">
-                    <span class="font-bold text-lg final-profit-value">Est. Profit (After Income Tax):</span>
-                    <span class="font-bold text-lg final-profit-value">${formatCurrency(estimatedProfitAfterTax)}</span>
+                    <span>Est. Income Taxes Owed (${incomeTaxRatePercentage}% of Profit):</span>
+                    <span>${formatCurrency(estimatedIncomeTaxesOwedOnProfit)}</span>
+                </div>
+                <div class="result-item">
+                    <span class="font-bold text-lg final-profit-value">Est. Net Profit (After All Taxes & Set-Asides):</span>
+                    <span class="font-bold text-lg final-profit-value">${formatCurrency(estimatedNetProfit)}</span>
                 </div>
             `;
             
